@@ -19,10 +19,13 @@
             <ul>
                 {% for asset in assets %}
                     <li>
-                        <strong>{{ asset.name }}</strong>
-                        <small>(Размер: {{ asset.file_size }})</small>
+                        <strong>{{ asset.title }}</strong>
+                        <!-- asset.file.url — это ссылка на файл (/media/3d_assets/...) -->
+                        <!-- asset.file.size — размер в байтах. filter 'filesizeformat' делает его читаемым (MB/KB) -->
+
+                        <small>(Размер: {{ asset.file.size|filesizeformat }})</small>
                         <!-- Ссылка-заглушка -->
-                        <a href="#">[Скачать]</a>
+                        <a href="{{ assets_file_url }}" download>[Скачать файл]</a>
                     </li>
                 {% empty %}
                 <li>Нет доступных моделей.</li>

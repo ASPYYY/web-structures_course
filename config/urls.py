@@ -25,6 +25,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     ##Пустая строка означает главную страницу
+    path('home/', home, name='home'),
     path('', home, name='home'),
     path('about/', about),
 
