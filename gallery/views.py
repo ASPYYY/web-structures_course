@@ -12,7 +12,7 @@ def home (request):
     # 1. Готовим данные (Context). Это словарь Python.
     # Ключи словаря станут именами переменных в HTML.
     context_data = {
-    'page_title': 'Главная Галерея',
+    'page_title_home': 'Главная Галерея',
     'models_count': len(fake_database), # Попробуйте поменять на 5, чтобы проверить условие
     'assets': fake_database,
     }

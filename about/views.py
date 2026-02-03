@@ -2,4 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 
 def about(request):
-    return HttpResponse('<h1>Курс Web-Структуры</h1><p></p>')
+    context_data = {
+        'page_title_about': 'О нас'
+    }
+    return render(request, 'gallery/about.html', context_data)
