@@ -23,9 +23,9 @@
                         <!-- asset.file.url — это ссылка на файл (/media/3d_assets/...) -->
                         <!-- asset.file.size — размер в байтах. filter 'filesizeformat' делает его читаемым (MB/KB) -->
 
-                        <small>(Размер: {{ asset.file.size|filesizeformat }})</small>
+                        <small>(Размер: {% if asset.file %}{{ asset.file.size|filesizeformat }}{% else %}Нет файла{% endif %})</small>
                         <!-- Ссылка-заглушка -->
-                        <a href="{{ assets_file_url }}" download>[Скачать файл]</a>
+                        <a href="{{ assets.file.url }}" download>[Скачать файл]</a>
                     </li>
                 {% empty %}
                 <li>Нет доступных моделей.</li>
@@ -45,7 +45,7 @@
         <p>&copy; 2024 Web Structures Course</p>
     </footer>
     <footer>
-        <a href="/about/">О нас</a>
+        <a href="/about/">О нас</a> <a href="/upload/">Загрузка</a>
     </footer>
 
 </body>
