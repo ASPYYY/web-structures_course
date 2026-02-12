@@ -31,7 +31,7 @@ urlpatterns = [
     path('home/', home, name='home'),
     path('', home, name='home'),
     path('about/', about),
-    path('upload/', upload),
+    path('upload/', upload, name='upload'),
 
 ]
 

@@ -1,52 +1,62 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <title>3D Storage</title>
+    <link rel="stylesheet" href="{% static 'gallery/style.css' %}">
 </head>
 <body>
-     <header>
-        <h1>{{ page_title_home }}</h1>
+    <header>
+        <h1>{{ page_title }}</h1>
+        <!-- Ссылка на загрузку теперь выглядит как кнопка -->
+        <a href="{% url 'upload' %}" class="btn" style="background-color: #28a745;">+
+Загрузить модель</a>
     </header>
 
-<!-- {{ ... }} — это переменная. Мы передадим её из Python -->
     <main>
-        <p>Добро пожаловать в систему хранения.</p>
-        <hr>
+        <!-- Контейнер сетки -->
+        <div class="gallery-grid">
+            
+            {% for asset in assets %}
+                <!-- Карточка -->
+                <div class="asset-card">
 
+                    <!-- 1. Превью (Верхняя часть) -->
+                    <!-- Пока здесь просто серый квадрат с иконкой куба -->
+                    <!-- На 6-й неделе здесь будет картинка, на 5-й - 3D сцена -->
+                    <div class="card-preview">
+                        id="model-container-{{ asset.id }}"
+                        data-url="{{ asset_file.url }}">
+                        <!-- Временно оставим текст, пока JS не заменит его на Canvas -->
+                        🎲
+                    </div>
+                    <!-- 2. Информация (Нижняя часть) -->
+                    <div class="card-info">
+                        <h3 class="card-title">{{ asset.title }}</h3>
+                        
+                        <div class="card-meta">
+                            <span>📅 {{ asset.created_at|date:"d M Y" }}</span>
+                            <!-- Если есть файл, показываем размер -->
+                            {% if asset.file %}
+                                <span style="float: right;">💾 {{ asset.file.size|filesizeformat }}</span>
+                            {% endif %}
+                        </div>
 
-            <h2>Доступные ассеты:</h2>
-            <ul>
-                {% for asset in assets %}
-                    <li>
-                        <strong>{{ asset.title }}</strong>
-                        <!-- asset.file.url — это ссылка на файл (/media/3d_assets/...) -->
-                        <!-- asset.file.size — размер в байтах. filter 'filesizeformat' делает его читаемым (MB/KB) -->
+                        <!-- Кнопка скачивания -->
+                    {% if asset.file %}
+                        <a href="{{ asset.file.url }}" class="btn" download>Скачать
+.glb</a>
+                    {% else %}
+                        <span style="color: red;">Файл потерян</span>
+                    {% endif %}
+                    </div>
+                </div>
+        {% empty %}
+            <p>База пуста.</p>
+        {% endfor %}
 
-                        <small>(Размер: {% if asset.file %}{{ asset.file.size|filesizeformat }}{% else %}Нет файла{% endif %})</small>
-                        <!-- Ссылка-заглушка -->
-                        <a href="{{ assets.file.url }}" download>[Скачать файл]</a>
-                    </li>
-                {% empty %}
-                <li>Нет доступных моделей.</li>
-                {% endfor %}
-            </ul>
-            <hr>
-                <!-- Проверка условия -->
-            {% if models_count > 0 %}      
-                <p>Сейчас в базе: <b>{{ models_count }}</b> моделей.</p>
-            {% else %}
-                <p>База пуста. Загрузите что-нибудь!</p>
-            {% endif %}
-        </main>
-
-
-    <footer>
-        <p>&copy; 2024 Web Structures Course</p>
-    </footer>
-    <footer>
-        <a href="/about/">О нас</a> <a href="/upload/">Загрузка</a>
-    </footer>
-
+        </div>
+    </main>
 </body>
 </html>
