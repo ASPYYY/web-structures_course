@@ -4,59 +4,101 @@
 <head>
     <meta charset="UTF-8">
     <title>3D Storage</title>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+
     <link rel="stylesheet" href="{% static 'gallery/style.css' %}">
 </head>
 <body>
     <header>
-        <h1>{{ page_title }}</h1>
-        <!-- Ссылка на загрузку теперь выглядит как кнопка -->
-        <a href="{% url 'upload' %}" class="btn" style="background-color: #28a745;">+
-Загрузить модель</a>
+        <h1>{{ page_title|default:"3D Storage" }}</h1>
+        <a href="{% url 'upload' %}" class="btn" style="background-color: #28a745;">+ Загрузить модель</a>
     </header>
 
     <main>
-        <!-- Контейнер сетки -->
         <div class="gallery-grid">
             
             {% for asset in assets %}
-                <!-- Карточка -->
                 <div class="asset-card">
-
                     <!-- 1. Превью (Верхняя часть) -->
-                    <!-- Пока здесь просто серый квадрат с иконкой куба -->
-                    <!-- На 6-й неделе здесь будет картинка, на 5-й - 3D сцена -->
-                    <div class="card-preview">
-                        id="model-container-{{ asset.id }}"
-                        data-url="{{ asset_file.url }}">
-                        <!-- Временно оставим текст, пока JS не заменит его на Canvas -->
+                    <div class="card-preview" 
+                         id="model-container-{{ asset.id }}">
                         🎲
                     </div>
+                    
                     <!-- 2. Информация (Нижняя часть) -->
                     <div class="card-info">
-                        <h3 class="card-title">{{ asset.title }}</h3>
+                        <h3 class="card-title">{{ asset.title|default:"Без названия" }}</h3>
                         
                         <div class="card-meta">
-                            <span>📅 {{ asset.created_at|date:"d M Y" }}</span>
-                            <!-- Если есть файл, показываем размер -->
-                            {% if asset.file %}
-                                <span style="float: right;">💾 {{ asset.file.size|filesizeformat }}</span>
+                            <span>📅 {{ asset.created_at|date:"d M Y"|default:"Дата неизвестна" }}</span>
+                            {% if asset.file and asset.file.size %}
+                                <span>💾 {{ asset.file.size|filesizeformat }}</span>
                             {% endif %}
                         </div>
 
-                        <!-- Кнопка скачивания -->
-                    {% if asset.file %}
-                        <a href="{{ asset.file.url }}" class="btn" download>Скачать
-.glb</a>
-                    {% else %}
-                        <span style="color: red;">Файл потерян</span>
-                    {% endif %}
+                        {% if asset.file and asset.file.url %}
+                            <a href="{{ asset.file.url }}" class="btn" download>Скачать .glb</a>
+                        {% else %}
+                            <span style="color: red;">Файл потерян</span>
+                        {% endif %}
                     </div>
                 </div>
-        {% empty %}
-            <p>База пуста.</p>
-        {% endfor %}
+            {% empty %}
+                <div style="grid-column: 1/-1; text-align: center; padding: 40px;">
+                    <p>База пуста. Загрузите первую модель!</p>
+                </div>
+            {% endfor %}
 
         </div>
     </main>
+
+    <!-- ВАЖНО: скрипт должен быть перед закрывающим body -->
+    <script type="module">
+        // Импортируем нашу функцию
+        import { mountSimpleCube } from "{% static 'gallery/js/viewer.js' %}";
+        
+        // Ждем загрузки DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            // Находим все контейнеры карточек
+            const containers = document.querySelectorAll('.card-preview');
+            
+            console.log('Найдено контейнеров:', containers.length);
+            
+            if (containers.length > 0) {
+                // Берем только первый контейнер для теста
+                const firstContainer = containers[0];
+                console.log('Первый контейнер:', firstContainer.id);
+                
+                // Запускаем магию
+                try {
+                    mountSimpleCube(firstContainer.id);
+                } catch (error) {
+                    console.error('Ошибка при создании куба:', error);
+                }
+            }
+        });
+    </script>
+    
+    <script type="module">
+        console.log('🚀 СКРИПТ ЗАПУЩЕН!');
+        import { mountSimpleCube } from "{% static 'gallery/js/viewer.js' %}";
+        console.log('✅ Функция импортирована');
+        
+        setTimeout(() => {
+            console.log('⏰ Запускаем через 1 секунду');
+            const containers = document.querySelectorAll('.card-preview');
+            if (containers.length > 0) {
+                mountSimpleCube(containers[0].id);
+            }
+        }, 1000);
+    </script>
 </body>
 </html>
