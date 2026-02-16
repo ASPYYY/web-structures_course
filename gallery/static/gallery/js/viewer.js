@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 export function loadModel(containerId, modelUrl) {
     const container = document.getElementById(containerId);
@@ -12,30 +14,52 @@ export function loadModel(containerId, modelUrl) {
     
     // 1. Стандартная настройка сцены
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf5f5f5);
+    //scene.background = new THREE.Color(0xf5f5f5);
+    scene.background = null;
 
     const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
         
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.shadowMap.enabled = true;
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    //renderer.shadowMap.enabled = true;
 
     // Очищаем контейнер и вставляем Canvas
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
 
+    const controls = new OrbitControls(camera, renderer.domElement);
+
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+
+    controls.minDistance = 0.1;
+    controls.maxDistance = 10;
+
+
     // 2. Свет
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-    scene.add(ambientLight);
+    //const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    //scene.add(ambientLight);
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
-    dirLight.position.set(5, 10, 7);
-    dirLight.castShadow = true;
-    scene.add(dirLight);
+    //const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    //dirLight.position.set(5, 10, 7);
+    //dirLight.castShadow = true;
+    //scene.add(dirLight);
 
-    const backLight = new THREE.DirectionalLight(0xffffff, 0.5);
-    backLight.position.set(-5, 5, -7);
-    scene.add(backLight);
+    //const backLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    //backLight.position.set(-5, 5, -7);
+    //scene.add(backLight);
+
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    const roomEnvironment = new RoomEnvironment();
+
+    scene.environment = pmremGenerator.fromScene(new RoomEnvironment(renderer)).texture;
+
+
+    // Опционально: Можно сделать фон прозрачным или цветным
+    // scene.background = new THREE.Color(0xeeeeee);
+    // Если хотите прозрачность, уберите scene.background и добавьте alpha: true в рендерер
 
     // Переменная для хранения модели (доступна во всей функции)
     let loadedModel = null;
@@ -77,10 +101,11 @@ export function loadModel(containerId, modelUrl) {
     function animate() {
         requestAnimationFrame(animate);
 
+        controls.update();
         // Вращаем модель, если она загружена
-        if (loadedModel) {
-            loadedModel.rotation.y += 0.005;
-        }
+        //if (loadedModel) {
+        //    loadedModel.rotation.y += 0.005;
+        //}
 
         renderer.render(scene, camera);
     }

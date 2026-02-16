@@ -39,7 +39,8 @@ header {
 /* Место для будущего 3D-вьювера или скриншота */
 .card-preview {
     height: 200px;
-    background-color: #e0e0e0;
+    /*background-color: #e0e0e0;*/
+    background: radial-gradient(circle, #ffffff, #e0e0e0);
     display: flex;
     align-items: center;
     justify-content: center;
