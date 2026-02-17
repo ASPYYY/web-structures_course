@@ -4,30 +4,71 @@
     <meta charset="UTF-8">
     <title>Загрузка модели</title>
     <style>
-        body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 0
-1rem; }
+        body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 0 1rem; }
         .form-group { margin-bottom: 1rem; }
         button { padding: 10px 20px; cursor: pointer; }
+        #preview-container { 
+            width: 300px; 
+            height: 200px; 
+            background: #eee;
+            border: 1px solid #ccc;
+            position: relative;
+            overflow: hidden;
+        }
+        #preview-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+            display: block;
+        }
+        .preview-placeholder {
+            display: block; 
+            padding: 80px 0; 
+            text-align: center; 
+            color: #999;
+        }
     </style>
 </head>
 <body>
     <h1>Загрузить новую 3D модель</h1>
-    <!--
-        1. method="post": Чтобы отправить данные.
-        2. enctype="multipart/form-data": ОБЯЗАТЕЛЬНО для файлов!
-    -->
-<form method="post" enctype="multipart/form-data">
-    <!-- Защита от хакеров -->
-    {% csrf_token %}
-
-    <!-- Django сам нарисует label и input для всех полей -->
-    <div class="form-group">
-        {{ form.as_p }}
-    </div>
     
-    <button type="submit">Загрузить в базу</button>
-</form>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Django сам нарисует label и input для всех полей -->
+        <div class="form-group">
+            {{ form.as_p }}
+        </div>
+
+        <!-- БЛОК ПРЕВЬЮ -->
+        <div style="margin-bottom: 20px;">
+            <p>Авто-генерация превью:</p>
+            <!-- Сюда JS вставит Canvas с 3D моделью -->
+            <div id="preview-container">
+                <span class="preview-placeholder">Выберите файл...</span>
+            </div>
+            <!-- СКРЫТОЕ ПОЛЕ (Сюда JS запишет длинную строку base64) -->
+            <input type="hidden" name="image_data" id="id_image_data">
+        </div>
+
+        <!-- Кнопка отправки (одна!) -->
+        <button type="submit" id="submit-btn" disabled>Загрузить в базу</button>
+    </form>
+    
     <br>
     <a href="{% url 'home' %}">← Назад в галерею</a>
+
+    <!-- Import Map - ДОЛЖЕН БЫТЬ ПРАВИЛЬНЫМ -->
+    {% load static %}
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    
+    <!-- Скрипт для авто-превью -->
+    <script type="module" src="{% static 'gallery/js/autothumb.js' %}"></script>
 </body>
 </html>
