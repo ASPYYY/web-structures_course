@@ -1,20 +1,59 @@
 import base64
 from django.core.files.base import ContentFile
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.db.models import Q
+from django.utils import timezone
+from datetime import timedelta
 from .models import Asset
 from .forms import AssetForm
 
 def home(request):
-    assets = Asset.objects.all().order_by('-created_at')
-    # 1. Готовим данные (Context). Это словарь Python.
-    # Ключи словаря станут именами переменных в HTML.
+    search_query = request.GET.get('q', '')
+
+    assets = Asset.objects.all()
+
+    ordering = request.GET.get('ordering', 'new')
+
+    if search_query:
+        assets = assets.filter(title__icontains=search_query)
+
+    if ordering == 'new':
+        assets = assets.order_by('-created_at')
+    elif ordering == 'old':
+        assets = assets.order_by('created_at')
+    elif ordering == 'name':
+        assets = assets.order_by('title')
+
+
+        # 3. ФИЛЬТР ПО ДАТЕ (новое!)
+    days_filter = request.GET.get('days', '')
+    if days_filter == '1':
+        # За сегодня
+        today = timezone.now().date()
+        assets = assets.filter(created_at__date=today)
+    elif days_filter == '7':
+        # За последние 7 дней
+        week_ago = timezone.now() - timedelta(days=7)
+        assets = assets.filter(created_at__gte=week_ago)
+    elif days_filter == '30':
+        # За последние 30 дней
+        month_ago = timezone.now() - timedelta(days=30)
+        assets = assets.filter(created_at__gte=month_ago)
+    
     context_data = {
-        'page_title_home': 'Главная Галерея',
-        'models_count': len(assets), # Попробуйте поменять на 5, чтобы проверить условие
+        'page_title_home': '3D Галерея',
         'assets': assets,
+        'search_query': search_query,
+        'current_ordering': ordering,
+        'current_days': days_filter,  # для подсветки активного фильтра
     }
 
+    
+    
+    # assets = Asset.objects.all().order_by('-created_at')
+    # 1. Готовим данные (Context). Это словарь Python.
+    # Ключи словаря станут именами переменных в HTML.
+    
     # 2. Рендерим (смешиваем HTML и данные)
     # Путь указываем относительно папки templates: 'gallery/index.html'
     return render(request, 'gallery/index.html', context_data)

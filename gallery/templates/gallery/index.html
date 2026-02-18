@@ -81,7 +81,46 @@
         <h1>{{ page_title|default:"3D Storage" }}</h1>
         <a href="{% url 'upload' %}" class="btn" style="background-color: #28a745;">+ Загрузить модель</a>
     </header>
-
+        <!-- Блок поиска и фильтров -->
+        <div class="toolbar">
+            <form action="{% url 'home' %}" method="get" style="display: flex; width: 100%; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <!-- Поле поиска -->
+                <input type="text" name="q" class="search-input"
+                       placeholder="Найти 3D модель..." 
+                       value="{{ search_query }}">
+                
+                <!-- Сортировка -->
+                <select name="ordering" class="sort-select" onchange="this.form.submit()">
+                    <option value="new" {% if current_ordering == 'new' %}selected{% endif %}>Сначала новые</option>
+                    <option value="old" {% if current_ordering == 'old' %}selected{% endif %}>Сначала старые</option>
+                    <option value="name" {% if current_ordering == 'name' %}selected{% endif %}>По имени (А-Я)</option>
+                </select>
+                
+                <!-- Кнопка поиска -->
+                <button type="submit" class="search-btn">Найти</button>
+                
+                <!-- ФИЛЬТРЫ ПО ДАТЕ (новое!) -->
+                <div class="date-filters">
+                    <a href="?{% if search_query %}q={{ search_query }}&{% endif %}days=1" 
+                       class="date-filter {% if current_days == '1' %}active{% endif %}">
+                       📅 Сегодня
+                    </a>
+                    <a href="?{% if search_query %}q={{ search_query }}&{% endif %}days=7" 
+                       class="date-filter {% if current_days == '7' %}active{% endif %}">
+                       📅 7 дней
+                    </a>
+                    <a href="?{% if search_query %}q={{ search_query }}&{% endif %}days=30" 
+                       class="date-filter {% if current_days == '30' %}active{% endif %}">
+                       📅 30 дней
+                    </a>
+                </div>
+                
+                <!-- Кнопка сброса (если есть активные фильтры) -->
+                {% if search_query or current_ordering != 'new' or current_days %}
+                    <a href="{% url 'home' %}" class="reset-link">✖ Сбросить всё</a>
+                {% endif %}
+            </form>
+        </div>
     <main>
         <div class="gallery-grid">
             
@@ -131,9 +170,18 @@
                 </div>
             </div>
             {% empty %}
-                <div style="grid-column: 1/-1; text-align: center; padding: 40px;">
+            <div class="empty-state">
+                {% if search_query %}
+                    <h3>По запросу "<b>{{ search_query }}</b>" ничего не найдено 🕵️</h3>
+                    <p>Попробуйте изменить запрос или <a href="{% url 'home' %}">сбросить фильтры</a>.</p>
+                {% elif current_days %}
+                    <h3>За выбранный период нет моделей 📅</h3>
+                    <p>Попробуйте <a href="{% url 'home' %}">посмотреть все модели</a>.</p>
+                {% else %}
                     <p>База пуста. Загрузите первую модель!</p>
-                </div>
+                    <a href="{% url 'upload' %}" class="btn" style="background-color: #28a745; margin-top: 15px;">+ Загрузить модель</a>
+                {% endif %}
+            </div>
             {% endfor %}
             
         </div>
