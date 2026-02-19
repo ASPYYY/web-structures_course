@@ -77,6 +77,17 @@
     </style>
 </head>
 <body>
+    <!-- Блок уведомлений -->
+    {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+            <!-- message.tags добавит класс 'success', 'error' или 'warning'-->
+            <div class="alert {{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
     <header>
         <h1>{{ page_title|default:"3D Storage" }}</h1>
         <a href="{% url 'upload' %}" class="btn" style="background-color: #28a745;">+ Загрузить модель</a>
@@ -124,7 +135,7 @@
     <main>
         <div class="gallery-grid">
             
-            {% for asset in assets %}
+            {% for asset in page_obj %}
             <div class="asset-card">
                 <!-- Превью -->
                 <div class="card-preview js-load-3d" 
@@ -185,6 +196,34 @@
             {% endfor %}
             
         </div>
+
+        {% load gallery_extras %}
+        <div class="gallery-grid">
+            <!--...-->
+        </div>
+        
+        <!-- 3. Блок Пагинации -->
+        <div class="pagination">
+            <span class="step-links">
+
+                {% if page_obj.has_previous %}
+                    <!-- Используем наш тег: берем текущий request и меняем page на 1 -->
+                    <a href="?{% param_replace request page=1 %}">&laquo; Первая</a>
+                    <a href="?{% param_replace request page=page_obj.previous_page_number%}">Назад</a>
+                {% endif %}
+
+                <span class="current">
+                    Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?{% param_replace request page=page_obj.next_page_number %}">Далее</a>
+                    <a href="?{% param_replace request page=page_obj.paginator.num_pages%}">Последняя &raquo;</a>
+                {% endif %}
+
+            </span>
+        </div>
+
     </main>
 
     <!-- Скрипт для загрузки 3D моделей -->

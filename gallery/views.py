@@ -6,6 +6,8 @@ from django.utils import timezone
 from datetime import timedelta
 from .models import Asset
 from .forms import AssetForm
+from django.core.paginator import Paginator
+from django.contrib import messages
 
 def home(request):
     search_query = request.GET.get('q', '')
@@ -39,10 +41,17 @@ def home(request):
         # За последние 30 дней
         month_ago = timezone.now() - timedelta(days=30)
         assets = assets.filter(created_at__gte=month_ago)
+
+    paginator = Paginator(assets, 2)
+
+    page_number = request.GET.get('page')
+
+    page_obj = paginator.get_page(page_number)
     
     context_data = {
         'page_title_home': '3D Галерея',
-        'assets': assets,
+        #'assets': assets,
+        'page_obj': page_obj,
         'search_query': search_query,
         'current_ordering': ordering,
         'current_days': days_filter,  # для подсветки активного фильтра
@@ -89,6 +98,8 @@ def upload(request):
             
             # 3. Финальное сохранение в БД
             new_asset.save()
+
+            messages.success(request, f'Модель "{ new_asset.title }" успешно загружена!')
             
             return redirect('home')
         else:
