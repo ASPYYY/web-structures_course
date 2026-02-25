@@ -42,7 +42,7 @@ def home(request):
         month_ago = timezone.now() - timedelta(days=30)
         assets = assets.filter(created_at__gte=month_ago)
 
-    paginator = Paginator(assets, 3)
+    paginator = Paginator(assets, 21)
 
     page_number = request.GET.get('page')
 
