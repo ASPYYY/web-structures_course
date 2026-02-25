@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <title>Загрузка модели — 3D Storage</title>
 
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'gallery/style.css' %}">
+
     <script type="importmap">
     {
         "imports": {
@@ -13,12 +16,9 @@
     }
     </script>
 
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'gallery/style.css' %}">
-
     <style>
         .upload-wrapper {
-            max-width: 700px;
+            max-width: 660px;
             margin: 2rem auto;
             padding: 0 1rem;
         }
@@ -33,13 +33,42 @@
         .upload-card h1 {
             margin-top: 0;
             margin-bottom: 1.5rem;
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             color: #333;
         }
 
+        .upload-card label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.35rem;
+            color: #444;
+            font-size: 0.9rem;
+        }
+
+        .upload-card input[type="text"],
+        .upload-card textarea,
+        .upload-card select {
+            width: 100%;
+            padding: 0.55rem 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        .upload-card input[type="text"]:focus,
+        .upload-card textarea:focus {
+            outline: none;
+            border-color: #28a745;
+            box-shadow: 0 0 0 3px rgba(40,167,69,0.1);
+        }
+
+        /* ===== DROP ZONE ===== */
         .drop-zone {
             width: 100%;
-            height: 220px;
+            height: 160px;
             border: 2px dashed #aaa;
             border-radius: 10px;
             display: flex;
@@ -64,8 +93,8 @@
         }
 
         .drop-zone .drop-icon {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
+            font-size: 2.2rem;
+            margin-bottom: 0.4rem;
             pointer-events: none;
         }
 
@@ -83,6 +112,7 @@
             height: 100%;
         }
 
+        /* ===== ПРЕВЬЮ ФАЙЛА (имя + размер) ===== */
         .file-preview {
             display: none;
             align-items: center;
@@ -137,69 +167,43 @@
             color: #e74c3c;
         }
 
-        /* 3D превью */
-        #preview-3d-wrapper {
-            display: none;
-            margin-bottom: 1.2rem;
+        /* ===== СЕКЦИЯ ПРЕВЬЮ 3D ===== */
+        .preview-section {
+            margin: 1.4rem 0;
         }
 
-        #preview-3d-label {
+        .preview-section > p {
             font-size: 0.85rem;
             color: #666;
-            margin-bottom: 6px;
+            margin: 0 0 8px 0;
         }
 
-        #preview-3d-container {
+        #preview-container {
             width: 100%;
-            height: 320px;
-            border-radius: 10px;
-            overflow: hidden;
-            background: #f0f0f0;
+            height: 300px;
+            background: #f5f5f5;
             border: 1px solid #ddd;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aaa;
+            font-size: 0.95rem;
+            overflow: hidden;
             position: relative;
         }
 
-        /* Поля формы */
-        .form-group {
-            margin-bottom: 1.2rem;
-        }
-
-        .form-group label {
+        /* Canvas от autothumb.js растягиваем на весь контейнер */
+        #preview-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain;
+            border-radius: 10px;
             display: block;
-            font-weight: 600;
-            margin-bottom: 0.4rem;
-            color: #444;
-            font-size: 0.9rem;
         }
 
-        .form-group input[type="text"],
-        .form-group textarea,
-        .form-group select {
-            width: 100%;
-            padding: 0.55rem 0.8rem;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            box-sizing: border-box;
-            transition: border-color 0.2s;
-            font-family: inherit;
-        }
-
-        .form-group input[type="text"]:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #28a745;
-            box-shadow: 0 0 0 3px rgba(40,167,69,0.1);
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 1.5rem;
-            flex-wrap: wrap;
-        }
-
-        .btn-submit {
+        /* ===== КНОПКИ ===== */
+        #submit-btn {
             padding: 0.65rem 1.8rem;
             background-color: #28a745;
             color: white;
@@ -208,25 +212,31 @@
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s, transform 0.15s;
+            transition: background 0.2s, transform 0.15s, opacity 0.2s;
         }
 
-        .btn-submit:hover {
+        #submit-btn:hover:not(:disabled) {
             background-color: #218838;
             transform: translateY(-1px);
         }
 
+        #submit-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
         .btn-back {
-            padding: 0.65rem 1.4rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 1rem;
+            padding: 0.55rem 1.2rem;
             background: #f0f0f0;
             color: #555;
             border: 1px solid #ddd;
             border-radius: 8px;
-            font-size: 1rem;
+            font-size: 0.95rem;
             text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
             transition: background 0.2s;
         }
 
@@ -234,8 +244,9 @@
             background: #e0e0e0;
         }
 
+        /* ===== УВЕДОМЛЕНИЯ ===== */
         .messages-container {
-            max-width: 700px;
+            max-width: 660px;
             margin: 1rem auto 0;
             padding: 0 1rem;
         }
@@ -273,7 +284,7 @@
             <form method="post" enctype="multipart/form-data" id="upload-form">
                 {% csrf_token %}
 
-                <!-- Зона выбора файла -->
+                <!-- DROP ZONE с полем file внутри -->
                 <div class="drop-zone" id="drop-zone">
                     <span class="drop-icon">🗂️</span>
                     <span>Перетащи .glb файл сюда или нажми для выбора</span>
@@ -291,16 +302,10 @@
                     <button type="button" class="remove-file" id="remove-file" title="Убрать файл">✕</button>
                 </div>
 
-                <!-- 3D превью модели -->
-                <div id="preview-3d-wrapper">
-                    <div id="preview-3d-label">🔍 Предпросмотр модели (можно вращать мышью):</div>
-                    <div id="preview-3d-container"></div>
-                </div>
-
                 <!-- Остальные поля формы (кроме file) -->
                 {% for field in form %}
                     {% if field.name != 'file' %}
-                    <div class="form-group">
+                    <div style="margin-bottom: 1rem;">
                         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                         {{ field }}
                         {% if field.errors %}
@@ -310,27 +315,34 @@
                     {% endif %}
                 {% endfor %}
 
-                <div class="form-actions">
-                    <button type="submit" class="btn-submit">✅ Загрузить в базу</button>
-                    <a href="{% url 'home' %}" class="btn-back">← Назад</a>
+                <!-- 3D ПРЕВЬЮ — id и структура не тронуты, autothumb.js работает с ними -->
+                <div class="preview-section">
+                    <p>🔍 Авто-генерация превью:</p>
+                    <div id="preview-container">
+                        <span>Выберите файл...</span>
+                    </div>
+                    <input type="hidden" name="image_data" id="id_image_data">
                 </div>
+
+                <!-- Кнопка — id не тронут -->
+                <button type="submit" id="submit-btn" disabled>✅ Загрузить в базу</button>
             </form>
+
+            <a href="{% url 'home' %}" class="btn-back">← Назад в галерею</a>
         </div>
     </div>
 
+    <!-- autothumb.js — основная логика (не трогаем) -->
+    <script type="module" src="{% static 'gallery/js/autothumb.js' %}"></script>
+
+    <!-- Drag & Drop + показ имени/размера файла -->
     <script type="module">
-        import { loadModel } from "{% static 'gallery/js/viewer.js' %}";
-
-        const dropZone           = document.getElementById('drop-zone');
-        const filePreview        = document.getElementById('file-preview');
-        const previewName        = document.getElementById('preview-name');
-        const previewSize        = document.getElementById('preview-size');
-        const removeBtn          = document.getElementById('remove-file');
-        const preview3dWrapper   = document.getElementById('preview-3d-wrapper');
-        const preview3dContainer = document.getElementById('preview-3d-container');
-        const fileInput          = dropZone.querySelector('input[type="file"]');
-
-        let currentObjectURL = null;
+        const dropZone    = document.getElementById('drop-zone');
+        const filePreview = document.getElementById('file-preview');
+        const previewName = document.getElementById('preview-name');
+        const previewSize = document.getElementById('preview-size');
+        const removeBtn   = document.getElementById('remove-file');
+        const fileInput   = dropZone.querySelector('input[type="file"]');
 
         function formatBytes(bytes) {
             if (bytes < 1024) return bytes + ' Б';
@@ -338,43 +350,28 @@
             return (bytes / (1024 * 1024)).toFixed(1) + ' МБ';
         }
 
-        function showPreview(file) {
-            // Инфо о файле
+        function showFileMeta(file) {
             previewName.textContent = file.name;
             previewSize.textContent = formatBytes(file.size);
             filePreview.classList.add('visible');
             dropZone.style.display = 'none';
-
-            // 3D превью через blob URL
-            if (currentObjectURL) URL.revokeObjectURL(currentObjectURL);
-            currentObjectURL = URL.createObjectURL(file);
-
-            preview3dContainer.innerHTML = '';
-            preview3dWrapper.style.display = 'block';
-            loadModel('preview-3d-container', currentObjectURL);
         }
 
-        function resetPreview() {
+        function resetFile() {
             filePreview.classList.remove('visible');
             dropZone.style.display = '';
             fileInput.value = '';
-
-            preview3dWrapper.style.display = 'none';
-            preview3dContainer.innerHTML = '';
-
-            if (currentObjectURL) {
-                URL.revokeObjectURL(currentObjectURL);
-                currentObjectURL = null;
-            }
+            document.getElementById('preview-container').innerHTML = '<span>Выберите файл...</span>';
+            document.getElementById('id_image_data').value = '';
+            document.getElementById('submit-btn').disabled = true;
         }
 
         fileInput.addEventListener('change', () => {
-            if (fileInput.files.length > 0) showPreview(fileInput.files[0]);
+            if (fileInput.files.length > 0) showFileMeta(fileInput.files[0]);
         });
 
-        removeBtn.addEventListener('click', resetPreview);
+        removeBtn.addEventListener('click', resetFile);
 
-        // Drag & Drop
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             dropZone.classList.add('dragover');
@@ -392,7 +389,8 @@
                 const dt = new DataTransfer();
                 dt.items.add(file);
                 fileInput.files = dt.files;
-                showPreview(file);
+                fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+                showFileMeta(file);
             }
         });
     </script>
