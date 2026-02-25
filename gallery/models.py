@@ -14,7 +14,7 @@ class Asset(models.Model):
 
     # Поле для превью (изображение)
     image = models.ImageField(
-        upload_to='thumbnails/',  # ✅ правильное название папки
+        upload_to='thumbnails/',
         blank=True, 
         null=True, 
         verbose_name="Превью"

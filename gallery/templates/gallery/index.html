@@ -111,7 +111,7 @@
                 <!-- Кнопка поиска -->
                 <button type="submit" class="search-btn">Найти</button>
                 
-                <!-- ФИЛЬТРЫ ПО ДАТЕ (новое!) -->
+                <!-- ФИЛЬТРЫ ПО ДАТЕ -->
                 <div class="date-filters">
                     <a href="?{% if search_query %}q={{ search_query }}&{% endif %}days=1" 
                        class="date-filter {% if current_days == '1' %}active{% endif %}">
@@ -127,7 +127,7 @@
                     </a>
                 </div>
                 
-                <!-- Кнопка сброса (если есть активные фильтры) -->
+                <!-- Кнопка сброса -->
                 {% if search_query or current_ordering != 'new' or current_days %}
                     <a href="{% url 'home' %}" class="reset-link">✖ Сбросить всё</a>
                 {% endif %}
