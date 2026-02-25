@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>3D Storage</title>
+    <title>Загрузка модели — 3D Storage</title>
 
     <script type="importmap">
     {
@@ -15,168 +15,387 @@
 
     {% load static %}
     <link rel="stylesheet" href="{% static 'gallery/style.css' %}">
-    
+
     <style>
-        .card-preview {
-            position: relative;
-            width: 100%;
-            height: 200px;
-            background-size: cover;
-            background-position: center;
-            cursor: pointer;
+        .upload-wrapper {
+            max-width: 700px;
+            margin: 2rem auto;
+            padding: 0 1rem;
         }
-        .play-btn {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 50px;
-            height: 50px;
-            background: rgba(0, 123, 255, 0.9);
-            color: white;
-            border-radius: 50%;
+
+        .upload-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 2rem;
+        }
+
+        .upload-card h1 {
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            color: #333;
+        }
+
+        .drop-zone {
+            width: 100%;
+            height: 220px;
+            border: 2px dashed #aaa;
+            border-radius: 10px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 0.95rem;
+            color: #888;
             cursor: pointer;
-            z-index: 10;
-            border: 2px solid white;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            transition: all 0.3s ease;
+            transition: border-color 0.3s, background 0.3s;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 1.2rem;
+            background: #fafafa;
+            box-sizing: border-box;
         }
-        .play-btn:hover {
-            background: #0056b3;
-            transform: translate(-50%, -50%) scale(1.1);
+
+        .drop-zone:hover,
+        .drop-zone.dragover {
+            border-color: #28a745;
+            background: #f0fff4;
         }
-        .card-preview:hover::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.1);
-            z-index: 5;
+
+        .drop-zone .drop-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
             pointer-events: none;
         }
-        .preview-placeholder {
+
+        .drop-zone span,
+        .drop-zone small {
+            pointer-events: none;
+        }
+
+        .drop-zone input[type="file"] {
             position: absolute;
-            top: 0;
-            left: 0;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
             width: 100%;
             height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            background-color: #f0f0f0;
-            z-index: 1;
         }
+
+        .file-preview {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            padding: 0.8rem 1rem;
+            margin-bottom: 1.2rem;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .file-preview.visible {
+            display: flex;
+        }
+
+        .file-preview .file-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .file-preview .file-info {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .file-preview .file-name {
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-preview .file-size {
+            color: #666;
+            font-size: 0.8rem;
+            margin-top: 2px;
+        }
+
+        .file-preview .remove-file {
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: #999;
+            padding: 4px;
+            flex-shrink: 0;
+            transition: color 0.2s;
+        }
+
+        .file-preview .remove-file:hover {
+            color: #e74c3c;
+        }
+
+        /* 3D превью */
+        #preview-3d-wrapper {
+            display: none;
+            margin-bottom: 1.2rem;
+        }
+
+        #preview-3d-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 6px;
+        }
+
+        #preview-3d-container {
+            width: 100%;
+            height: 320px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            position: relative;
+        }
+
+        /* Поля формы */
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            color: #444;
+            font-size: 0.9rem;
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.55rem 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+            font-family: inherit;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #28a745;
+            box-shadow: 0 0 0 3px rgba(40,167,69,0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-submit {
+            padding: 0.65rem 1.8rem;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+        }
+
+        .btn-submit:hover {
+            background-color: #218838;
+            transform: translateY(-1px);
+        }
+
+        .btn-back {
+            padding: 0.65rem 1.4rem;
+            background: #f0f0f0;
+            color: #555;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: background 0.2s;
+        }
+
+        .btn-back:hover {
+            background: #e0e0e0;
+        }
+
+        .messages-container {
+            max-width: 700px;
+            margin: 1rem auto 0;
+            padding: 0 1rem;
+        }
+
+        .alert {
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .alert.success { background: #d4edda; color: #155724; }
+        .alert.error   { background: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
+
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <header>
-        <h1>{{ page_title|default:"3D Storage" }}</h1>
-        <a href="{% url 'upload' %}" class="btn" style="background-color: #28a745;">+ Загрузить модель</a>
+        <h1>3D Storage</h1>
+        <a href="{% url 'home' %}" class="btn">← Назад в галерею</a>
     </header>
 
-    <main>
-        <div class="gallery-grid">
-            
-            {% for asset in assets %}
-            <div class="asset-card">
-                <!-- Превью -->
-                <div class="card-preview js-load-3d" 
-                     id="model-container-{{ asset.id }}"
-                     {% if asset.file %}data-url="{{ asset.file.url }}"{% endif %}
-                     style="height: 200px; {% if asset.image and asset.image.url %}background-image: url('{{ asset.image.url }}'); background-size: cover; background-position: center;{% else %}background-color: #f0f0f0;{% endif %} position: relative;">
-                    
-                    <!-- Кнопка PLAY - только если есть файл -->
-                    {% if asset.file %}
-                        <div class="play-btn">▶</div>
-                    {% endif %}
-                    
-                    <!-- Заглушка, если нет изображения -->
-                    {% if not asset.image or not asset.image.url %}
-                        <div class="preview-placeholder">🎲</div>
-                    {% endif %}
+    <div class="upload-wrapper">
+        <div class="upload-card">
+            <h1>📤 Загрузить новую 3D модель</h1>
+
+            <form method="post" enctype="multipart/form-data" id="upload-form">
+                {% csrf_token %}
+
+                <!-- Зона выбора файла -->
+                <div class="drop-zone" id="drop-zone">
+                    <span class="drop-icon">🗂️</span>
+                    <span>Перетащи .glb файл сюда или нажми для выбора</span>
+                    <small style="color: #aaa; margin-top: 4px;">Поддерживается: .glb, .gltf</small>
+                    {{ form.file }}
                 </div>
-                
-                <!-- Информация -->
-                <div class="card-info">
-                    <h3 class="card-title">{{ asset.title }}</h3>
-                    <div class="card-meta">
-                        <span>📅 {{ asset.created_at|date:"d M Y" }}</span>
-                        {% if asset.file %}
-                            <span>💾 {{ asset.file.size|filesizeformat }}</span>
+
+                <!-- Превью имени и размера файла -->
+                <div class="file-preview" id="file-preview">
+                    <span class="file-icon">📦</span>
+                    <div class="file-info">
+                        <div class="file-name" id="preview-name">—</div>
+                        <div class="file-size" id="preview-size">—</div>
+                    </div>
+                    <button type="button" class="remove-file" id="remove-file" title="Убрать файл">✕</button>
+                </div>
+
+                <!-- 3D превью модели -->
+                <div id="preview-3d-wrapper">
+                    <div id="preview-3d-label">🔍 Предпросмотр модели (можно вращать мышью):</div>
+                    <div id="preview-3d-container"></div>
+                </div>
+
+                <!-- Остальные поля формы (кроме file) -->
+                {% for field in form %}
+                    {% if field.name != 'file' %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <small style="color: red;">{{ field.errors|join:", " }}</small>
                         {% endif %}
                     </div>
-                    {% if asset.file %}
-                        <a href="{{ asset.file.url }}" class="btn" download>Скачать .glb</a>
-                    {% else %}
-                        <span style="color: red;">Файл потерян</span>
                     {% endif %}
-                </div>
-            </div>
-            {% empty %}
-                <div style="grid-column: 1/-1; text-align: center; padding: 40px;">
-                    <p>База пуста. Загрузите первую модель!</p>
-                </div>
-            {% endfor %}
-            
-        </div>
-    </main>
+                {% endfor %}
 
-    <!-- Скрипт для загрузки 3D моделей -->
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">✅ Загрузить в базу</button>
+                    <a href="{% url 'home' %}" class="btn-back">← Назад</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script type="module">
         import { loadModel } from "{% static 'gallery/js/viewer.js' %}";
-        
-        console.log('🚀 Скрипт загружен');
-        
-        function load3DModel(container) {
-            const id = container.id;
-            const url = container.dataset.url;
-            
-            if (!url) {
-                console.log('❌ Нет URL для контейнера:', id);
-                return;
-            }
-            
-            if (container.querySelector('canvas')) {
-                console.log('⏭️ 3D модель уже загружена в', id);
-                return;
-            }
-            
-            console.log('🔄 Загружаем модель:', url, 'в контейнер:', id);
-            
-            // ✅ ПОЛНОСТЬЮ ОЧИЩАЕМ КОНТЕЙНЕР ОТ ПРЕВЬЮ
-            container.style.backgroundImage = 'none';  // убираем фоновое изображение
-            container.style.backgroundColor = '#f0f0f0'; // ставим серый фон
-            container.innerHTML = ''; // удаляем кнопку и заглушку
-            
-            // Загружаем модель
-            loadModel(id, url);
+
+        const dropZone           = document.getElementById('drop-zone');
+        const filePreview        = document.getElementById('file-preview');
+        const previewName        = document.getElementById('preview-name');
+        const previewSize        = document.getElementById('preview-size');
+        const removeBtn          = document.getElementById('remove-file');
+        const preview3dWrapper   = document.getElementById('preview-3d-wrapper');
+        const preview3dContainer = document.getElementById('preview-3d-container');
+        const fileInput          = dropZone.querySelector('input[type="file"]');
+
+        let currentObjectURL = null;
+
+        function formatBytes(bytes) {
+            if (bytes < 1024) return bytes + ' Б';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' КБ';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' МБ';
         }
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            const containers = document.querySelectorAll('.js-load-3d');
-            console.log('📦 Найдено контейнеров:', containers.length);
-            
-            containers.forEach(container => {
-                if (!container.dataset.url) {
-                    console.log('⚠️ Контейнер без URL:', container.id);
-                    return;
-                }
-                
-                container.addEventListener('click', function(e) {
-                    if (e.target.tagName === 'A' || e.target.closest('a')) {
-                        return;
-                    }
-                    load3DModel(this);
-                });
-            });
+
+        function showPreview(file) {
+            // Инфо о файле
+            previewName.textContent = file.name;
+            previewSize.textContent = formatBytes(file.size);
+            filePreview.classList.add('visible');
+            dropZone.style.display = 'none';
+
+            // 3D превью через blob URL
+            if (currentObjectURL) URL.revokeObjectURL(currentObjectURL);
+            currentObjectURL = URL.createObjectURL(file);
+
+            preview3dContainer.innerHTML = '';
+            preview3dWrapper.style.display = 'block';
+            loadModel('preview-3d-container', currentObjectURL);
+        }
+
+        function resetPreview() {
+            filePreview.classList.remove('visible');
+            dropZone.style.display = '';
+            fileInput.value = '';
+
+            preview3dWrapper.style.display = 'none';
+            preview3dContainer.innerHTML = '';
+
+            if (currentObjectURL) {
+                URL.revokeObjectURL(currentObjectURL);
+                currentObjectURL = null;
+            }
+        }
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) showPreview(fileInput.files[0]);
+        });
+
+        removeBtn.addEventListener('click', resetPreview);
+
+        // Drag & Drop
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                fileInput.files = dt.files;
+                showPreview(file);
+            }
         });
     </script>
+
 </body>
 </html>
