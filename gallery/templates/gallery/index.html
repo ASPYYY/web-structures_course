@@ -19,7 +19,7 @@
     {% load static %}
     {% load gallery_extras %}
     <link rel="stylesheet" href="{% static 'gallery/style.css' %}">
-    
+
     <style>
         .card-preview {
             position: relative;
@@ -78,97 +78,98 @@
             background-color: #f0f0f0;
             z-index: 1;
         }
+
+        /* Автоскрытие сообщений: плавный fade за 5 секунд */
+        .messages-container .alert {
+            animation: msgFadeOut 5s ease forwards;
+        }
+        @keyframes msgFadeOut {
+            0%   { opacity: 1; transform: translateY(0); }
+            80%  { opacity: 1; }
+            100% { opacity: 0; transform: translateY(-6px); }
+        }
     </style>
 </head>
+
 <body>
     <!-- Блок уведомлений -->
     {% if messages %}
-        <div class="messages-container">
+        <div id="messages" class="messages-container">
             {% for message in messages %}
-            <!-- message.tags добавит класс 'success', 'error' или 'warning'-->
-            <div class="alert {{ message.tags }}">
-                {{ message }}
-            </div>
-        {% endfor %}
+                <div class="alert {{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
         </div>
     {% endif %}
+
     <header>
         <h1>{{ page_title|default:"3D Storage" }}</h1>
         <a href="{% url 'upload' %}" class="btn" style="background-color: #28a745;">+ Загрузить модель</a>
     </header>
-        <!-- Блок поиска и фильтров -->
-        <div class="toolbar">
-            <form action="{% url 'home' %}" method="get" style="display: flex; width: 100%; gap: 10px; align-items: center; flex-wrap: wrap;">
-                <!-- Поле поиска -->
-                <input type="text" name="q" class="search-input"
-                       placeholder="Найти 3D модель..." 
-                       value="{{ search_query }}">
-                
-                <!-- Сортировка -->
-                <select name="ordering" class="sort-select" onchange="this.form.submit()">
-                    <option value="new" {% if current_ordering == 'new' %}selected{% endif %}>Сначала новые</option>
-                    <option value="old" {% if current_ordering == 'old' %}selected{% endif %}>Сначала старые</option>
-                    <option value="name" {% if current_ordering == 'name' %}selected{% endif %}>По имени (А-Я)</option>
-                </select>
-                
-                <!-- Кнопка поиска -->
-                <button type="submit" class="search-btn">Найти</button>
-                
-                <!-- ФИЛЬТРЫ ПО ДАТЕ -->
-                <div class="date-filters">
-                    <a href="?{% if search_query %}q={{ search_query }}&{% endif %}days=1" 
-                       class="date-filter {% if current_days == '1' %}active{% endif %}">
-                       📅 Сегодня
-                    </a>
-                    <a href="?{% if search_query %}q={{ search_query }}&{% endif %}days=7" 
-                       class="date-filter {% if current_days == '7' %}active{% endif %}">
-                       📅 7 дней
-                    </a>
-                    <a href="?{% if search_query %}q={{ search_query }}&{% endif %}days=30" 
-                       class="date-filter {% if current_days == '30' %}active{% endif %}">
-                       📅 30 дней
-                    </a>
-                </div>
-                
-                <!-- Кнопка сброса -->
-                {% if search_query or current_ordering != 'new' or current_days %}
-                    <a href="{% url 'home' %}" class="reset-link">✖ Сбросить всё</a>
-                {% endif %}
-            </form>
-        </div>
+
+    <!-- Блок поиска и фильтров -->
+    <div class="toolbar">
+        <form action="{% url 'home' %}" method="get" style="display: flex; width: 100%; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <input type="text" name="q" class="search-input"
+                   placeholder="Найти 3D модель..."
+                   value="{{ search_query }}">
+
+            <select name="ordering" class="sort-select" onchange="this.form.submit()">
+                <option value="new" {% if current_ordering == 'new' %}selected{% endif %}>Сначала новые</option>
+                <option value="old" {% if current_ordering == 'old' %}selected{% endif %}>Сначала старые</option>
+                <option value="name" {% if current_ordering == 'name' %}selected{% endif %}>По имени (А-Я)</option>
+            </select>
+
+            <button type="submit" class="search-btn">Найти</button>
+
+            <div class="date-filters">
+                <a href="?{% if search_query %}q={{ search_query }}&{% endif %}days=1"
+                   class="date-filter {% if current_days == '1' %}active{% endif %}">
+                   📅 Сегодня
+                </a>
+                <a href="?{% if search_query %}q={{ search_query }}&{% endif %}days=7"
+                   class="date-filter {% if current_days == '7' %}active{% endif %}">
+                   📅 7 дней
+                </a>
+                <a href="?{% if search_query %}q={{ search_query }}&{% endif %}days=30"
+                   class="date-filter {% if current_days == '30' %}active{% endif %}">
+                   📅 30 дней
+                </a>
+            </div>
+
+            {% if search_query or current_ordering != 'new' or current_days %}
+                <a href="{% url 'home' %}" class="reset-link">✖ Сбросить всё</a>
+            {% endif %}
+        </form>
+    </div>
+
     <main>
         <div class="gallery-grid">
-            
             {% for asset in page_obj %}
             <div class="asset-card">
-                <!-- Превью -->
-                <div class="card-preview js-load-3d" 
+                <div class="card-preview js-load-3d"
                      id="model-container-{{ asset.id }}"
-                     {% if asset.file %}
-                        data-url="{{ asset.file.url }}"
-                     {% endif %}
-                     style="height: 200px; 
+                     {% if asset.file %} data-url="{{ asset.file.url }}" {% endif %}
+                     style="height: 200px;
                             {% if asset.image and asset.image.url %}
-                                background-image: url('{{ asset.image.url }}'); 
-                                background-size: cover; 
+                                background-image: url('{{ asset.image.url }}');
+                                background-size: cover;
                                 background-position: center;
                             {% else %}
                                 background-color: #f0f0f0;
                             {% endif %}
                             position: relative;">
-                    
-                    <!-- Кнопка PLAY - только если есть файл -->
+
                     {% if asset.file %}
                         <div class="play-btn">▶</div>
                     {% endif %}
-                    
-                    <!-- Заглушка, если нет изображения -->
+
                     {% if not asset.image or not asset.image.url %}
                         <div class="preview-placeholder">🎲</div>
                     {% endif %}
                 </div>
-                
-                <!-- Информация -->
+
                 <div class="card-info">
                     <h3 class="card-title">{{ asset.title }}</h3>
                     <div class="card-meta">
@@ -177,6 +178,7 @@
                             <span>💾 {{ asset.file.size|filesizeformat }}</span>
                         {% endif %}
                     </div>
+
                     {% if asset.file %}
                         <a href="{{ asset.file.url }}" class="btn" download>Скачать .glb</a>
                     {% else %}
@@ -198,18 +200,13 @@
                 {% endif %}
             </div>
             {% endfor %}
-            
         </div>
 
-        
-        <!-- 3. Блок Пагинации -->
         <div class="pagination">
             <span class="step-links">
-
                 {% if page_obj.has_previous %}
-                    <!-- Используем наш тег: берем текущий request и меняем page на 1 -->
                     <a href="?{% param_replace request page=1 %}">&laquo; Первая</a>
-                    <a href="?{% param_replace request page=page_obj.previous_page_number%}">Назад</a>
+                    <a href="?{% param_replace request page=page_obj.previous_page_number %}">Назад</a>
                 {% endif %}
 
                 <span class="current">
@@ -218,68 +215,62 @@
 
                 {% if page_obj.has_next %}
                     <a href="?{% param_replace request page=page_obj.next_page_number %}">Далее</a>
-                    <a href="?{% param_replace request page=page_obj.paginator.num_pages%}">Последняя &raquo;</a>
+                    <a href="?{% param_replace request page=page_obj.paginator.num_pages %}">Последняя &raquo;</a>
                 {% endif %}
-
             </span>
         </div>
-
     </main>
+
+    <!-- Удаляем уведомления через 5 секунд (чтобы не оставалось пустого места) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.querySelector('.messages-container');
+            if (!container) return;
+            setTimeout(() => container.remove(), 5000);
+        });
+    </script>
 
     <!-- Скрипт для загрузки 3D моделей -->
     <script type="module">
         import { loadModel } from "{% static 'gallery/js/viewer.js' %}";
-        
+
         console.log('🚀 Скрипт загружен');
-        
-        // Функция для загрузки 3D модели в контейнер
+
         function load3DModel(container) {
             const id = container.id;
             const url = container.dataset.url;
-            
+
             if (!url) {
                 console.log('❌ Нет URL для контейнера:', id);
                 return;
             }
-            
-            // Проверяем, не загружена ли уже 3D модель
+
             if (container.querySelector('canvas')) {
                 console.log('⏭️ 3D модель уже загружена в', id);
                 return;
             }
-            
+
             console.log('🔄 Загружаем модель:', url, 'в контейнер:', id);
-            
-            // Очищаем содержимое
+
             container.style.backgroundImage = 'none';
             container.style.backgroundColor = '#f0f0f0';
             container.innerHTML = '';
-            
-            // Загружаем модель
+
             loadModel(id, url);
         }
-        
-        // Ждем загрузки DOM
+
         document.addEventListener('DOMContentLoaded', function() {
             const containers = document.querySelectorAll('.js-load-3d');
             console.log('📦 Найдено контейнеров:', containers.length);
-            
-            // Для каждой карточки добавляем обработчик клика
+
             containers.forEach(container => {
-                // Если нет data-url, пропускаем
                 if (!container.dataset.url) {
                     console.log('⚠️ Контейнер без URL:', container.id);
                     return;
                 }
-                
-                // Добавляем обработчик клика
+
                 container.addEventListener('click', function(e) {
-                    // Не реагируем, если клик по кнопке скачивания
-                    if (e.target.tagName === 'A' || e.target.closest('a')) {
-                        return;
-                    }
-                    
-                    // Загружаем 3D модель
+                    if (e.target.tagName === 'A' || e.target.closest('a')) return;
                     load3DModel(this);
                 });
             });
